@@ -1,3 +1,4 @@
+import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.shortcuts import render
@@ -11,8 +12,69 @@ from django.db.models import Q
 
 # Create your views here.
 def index(request):
-    tim = datetime.now() + timedelta(hours=5, minutes=30)
-    return render(request, 'index.html', {'time': tim})
+    return render(request, 'index.html')
+
+
+def view_call_logs(request):
+    return render(request, 'call-logs.html')
+
+
+def view_notifi_logs(request):
+    return render(request, 'notifi-logs.html')
+
+
+def view_text_logs(request):
+    return render(request, 'text-logs.html')
+
+
+def view_logs(request):
+    return render(request, 'logs.html')
+
+
+@csrf_exempt
+def add_log(request):
+    from app.models import Log, CallLog, TextLog, NotifiLog
+    call_log = request.POST.get('call_log')
+    notifi_log = request.POST.get('notifi_log')
+    text_log = request.POST.get('text_log')
+    log = request.POST.get('log')
+    print(
+        'call_log', call_log,
+        'notifi_log', notifi_log,
+        'text_log', text_log,
+        'log', log
+    )
+    if call_log:
+        CallLog.objects.create(log=call_log)
+    if notifi_log:
+        NotifiLog.objects.create(log=notifi_log)
+    if text_log:
+        TextLog.objects.create(log=text_log)
+    if log:
+        Log.objects.create(log=log)
+    return JsonResponse({'status': 200, 'message': 'Log added'})
+
+
+def fetch_logs(request):
+    from app.models import Log
+    from app.models import CallLog
+    from app.models import NotifiLog
+    from app.models import TextLog
+    log_section = request.GET.get('log-section')
+    if log_section == 'call':
+        dblogs = CallLog.objects.all()
+    elif log_section == 'notifi':
+        dblogs = NotifiLog.objects.all()
+    elif log_section == 'text':
+        dblogs = TextLog.objects.all()
+    else:
+        dblogs = Log.objects.all()
+    logs = []
+    for log in dblogs:
+        tim = str(log.created_at).split('.')[0]
+        logs.append(log.log + ' - ' + tim)
+    return JsonResponse({'status': 200, 'logs': logs})
+
 
 def signup(request):
     username = request.POST.get('username')
@@ -108,28 +170,10 @@ def delete_user(request):
     user.delete()
     return JsonResponse({'status': 200, 'message': 'User deleted'})
 
-
-@csrf_exempt
-def add_call_log(request):
-    from app.models import CallLog
-    from_number = request.POST.get('from_number')
-    to_number = request.POST.get('to_number')
-    status = request.POST.get('status')
-    if not from_number or not to_number or not status:
-        return JsonResponse({'status': 400, 'message': 'Missing parameters'})
-    CallLog.objects.create(from_number=from_number, to_number=to_number, status=status, created_at=datetime.now())
-    return JsonResponse({'status': 200, 'message': 'Call log added'})
-
-
-def view_call_log(request):
-    tim = datetime.now()
-    return render(request, 'call-log.html', {'time': tim})
-
-
-def fetch_call_log(request):
-    from app.models import CallLog
-    call_logs = CallLog.objects.all()
-    logs = []
-    for call_log in call_logs:
-        logs.append({'from_number': call_log.from_number, 'to_number': call_log.to_number, 'status': call_log.status, 'time': call_log.created_at})
-    return JsonResponse({'status': 200, 'logs': logs})
+def clear(request):
+    from app.models import Log, CallLog, TextLog, NotifiLog
+    Log.objects.all().delete()
+    CallLog.objects.all().delete()
+    TextLog.objects.all().delete()
+    NotifiLog.objects.all().delete()
+    return JsonResponse({'status': 200, 'message': 'Logs cleared'})
