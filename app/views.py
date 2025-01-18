@@ -1,4 +1,3 @@
-import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.shortcuts import render
@@ -12,8 +11,8 @@ from django.db.models import Q
 
 # Create your views here.
 def index(request):
-
-    return render(request, 'index.html')
+    tim = datetime.now() + timedelta(hours=5, minutes=30)
+    return render(request, 'index.html', {'time': tim})
 
 def signup(request):
     username = request.POST.get('username')
@@ -110,14 +109,6 @@ def delete_user(request):
     return JsonResponse({'status': 200, 'message': 'User deleted'})
 
 
-from rest_framework_simplejwt.tokens import AccessToken
-
-def generate_jwt_token(user):
-    # Generate JWT token for the given user
-    token = AccessToken.for_user(user)
-    return token
-
-
 @csrf_exempt
 def add_call_log(request):
     from app.models import CallLog
@@ -126,12 +117,13 @@ def add_call_log(request):
     status = request.POST.get('status')
     if not from_number or not to_number or not status:
         return JsonResponse({'status': 400, 'message': 'Missing parameters'})
-    CallLog.objects.create(from_number=from_number, to_number=to_number, status=status)
+    CallLog.objects.create(from_number=from_number, to_number=to_number, status=status, created_at=datetime.now())
     return JsonResponse({'status': 200, 'message': 'Call log added'})
 
 
 def view_call_log(request):
-    return render(request, 'call-log.html')
+    tim = datetime.now()
+    return render(request, 'call-log.html', {'time': tim})
 
 
 def fetch_call_log(request):
@@ -139,5 +131,5 @@ def fetch_call_log(request):
     call_logs = CallLog.objects.all()
     logs = []
     for call_log in call_logs:
-        logs.append({'from_number': call_log.from_number, 'to_number': call_log.to_number, 'status': call_log.status})
+        logs.append({'from_number': call_log.from_number, 'to_number': call_log.to_number, 'status': call_log.status, 'time': call_log.created_at})
     return JsonResponse({'status': 200, 'logs': logs})

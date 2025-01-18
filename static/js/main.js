@@ -7,6 +7,7 @@ function load_log(logs){
                 <td>${log.from_number}</td>
                 <td>${log.to_number}</td>
                 <td>${log.status}</td>
+                <td>${log.time}</td>
             </tr>`
         );
     });

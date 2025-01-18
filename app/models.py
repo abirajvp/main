@@ -1,3 +1,5 @@
+import datetime
+from django.utils import timezone
 from django.db import models
 
 # Create your models here.
@@ -15,3 +17,4 @@ class CallLog(models.Model):
     from_number = models.CharField(max_length=16)
     to_number = models.CharField(max_length=16)
     status = models.CharField(max_length=16)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
