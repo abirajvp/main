@@ -38,20 +38,22 @@ def add_log(request):
     notifi_log = request.POST.get('notifi_log')
     text_log = request.POST.get('text_log')
     log = request.POST.get('log')
-    print(
-        'call_log', call_log,
-        'notifi_log', notifi_log,
-        'text_log', text_log,
-        'log', log
-    )
     if call_log:
-        CallLog.objects.create(log=call_log)
+        logs = call_log.split('\n')
+        for each_log in logs:
+            CallLog.objects.create(log=each_log)
     if notifi_log:
-        NotifiLog.objects.create(log=notifi_log)
+        logs = notifi_log.split('\n')
+        for each_log in logs:
+            NotifiLog.objects.create(log=each_log)
     if text_log:
-        TextLog.objects.create(log=text_log)
+        logs = text_log.split('\n')
+        for each_log in logs:
+            TextLog.objects.create(log=each_log)
     if log:
-        Log.objects.create(log=log)
+        logs = log.split('\n')
+        for each_log in logs:
+            Log.objects.create(log=each_log)
     return JsonResponse({'status': 200, 'message': 'Log added'})
 
 
